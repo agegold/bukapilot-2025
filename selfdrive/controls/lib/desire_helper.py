@@ -38,6 +38,22 @@ class Dir(Enum):
   RIGHT = auto()
 
 class DesireHelper:
+  def is_road_edge_direction(self, carstate, md):
+    if md is None:
+      return False
+
+    left_edge_prob, right_edge_prob = np.clip(1.0 - md.roadEdgeStds[0], 0.0, 1.0), np.clip(1.0 - md.roadEdgeStds[1], 0.0, 1.0)
+    left_nearside_prob, right_nearside_prob = md.laneLineProbs[0], md.laneLineProbs[3]
+
+    if right_edge_prob > 0.35 and right_nearside_prob < 0.2 and left_nearside_prob >= right_nearside_prob:
+      road_edge_stat = Dir.RIGHT
+    elif left_edge_prob > 0.35 and left_nearside_prob < 0.2 and right_nearside_prob >= left_nearside_prob:
+      road_edge_stat = Dir.LEFT
+    else:
+      road_edge_stat = None
+
+    return (carstate.leftBlinker and road_edge_stat == Dir.LEFT) or (carstate.rightBlinker and road_edge_stat == Dir.RIGHT)
+
   def __init__(self):
     self.lane_change_state = LaneChangeState.off
     self.lane_change_direction = LaneChangeDirection.none
@@ -52,7 +68,7 @@ class DesireHelper:
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
     self.blinker_below_lane_change_speed = False
 
-  def update(self, carstate, active, lane_change_prob):
+  def update(self, carstate, active, lane_change_prob, md=None):
     current_time = time.monotonic()
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = carstate.vEgo < LANE_CHANGE_SPEED_MIN
@@ -92,7 +108,8 @@ class DesireHelper:
 
       # LaneChangeState.off
       if self.lane_change_state == LaneChangeState.off and one_blinker and blinker_length_enough \
-         and not below_lane_change_speed and not wait_for_delay and not self.blinker_below_lane_change_speed:
+         and not below_lane_change_speed and not wait_for_delay and not self.blinker_below_lane_change_speed \
+         and not self.is_road_edge_direction(carstate, md):
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
 
