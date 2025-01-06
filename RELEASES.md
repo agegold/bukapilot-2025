@@ -1,9 +1,4 @@
-Version 9.8.1  (2025-01-02)
-
-Version 9.8.1  (2025-01-02)
-Version 9.8.1  (2025-01-02)
-
-Version 9.8.1  (2025-01-02)
+Version 19.8.1  (2025-01-02)
 =========================
 * **ALERT**: If Assisted Lane Change is enabled, below Assisted Lane Change speed, and turn signal is on, lane keep will be deactivated to allow manual steering control.
 * Proton bukapilot lane keep follows LKS enable, to use bukapilot lane keep without stock LDW, set LKS to Warn Only and Tactile
