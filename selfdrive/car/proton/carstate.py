@@ -37,8 +37,8 @@ class CarState(CarStateBase):
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
     self.lks_aux = 0
-    self.lks_audio = 0
-    self.lks_tactile = 0
+    self.lks_audio = None
+    self.lks_tactile = None
     self.lks_enable_main = 0
     self.stock_ldw = 0
     self.stock_ldp_left = 0
@@ -61,10 +61,6 @@ class CarState(CarStateBase):
   def update(self, cp):
     ret = car.CarState.new_message()
 
-    self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
-    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO"]
-    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE"]
-    self.lks_enable_main = cp.vl["ADAS_LKAS"]["LKS_ENABLE_MAIN"]
     self.stock_ldp_cmd = cp.vl["ADAS_LKAS"]["STEER_CMD"]
     self.stock_ldw = cp.vl["ADAS_LKAS"]["LKS_LDW"]
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
@@ -198,6 +194,13 @@ class CarState(CarStateBase):
       # used for lane change so its okay for the chime to work on both side.
       ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
       ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
+
+    # LKS
+    self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
+    self.lks_enable_main = cp.vl["ADAS_LKAS"]["LKS_ENABLE_MAIN"]
+    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO"]
+    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE"]
+
     return ret
 
 
