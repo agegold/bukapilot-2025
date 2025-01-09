@@ -8,8 +8,8 @@ from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from common.params import Params
 import cereal.messaging as messaging
-
 from common.features import Features
+import time
 
 RES_INTERVAL = 550
 RES_LEN = 2 # Press resume for 2 frames
@@ -55,6 +55,8 @@ class CarController():
     self.temp_lead_dist = 0       # The last lead distance before standstill
     self.last_res_press_frame = 0 # The frame where the last resume press was finished
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
+    self.last_disable = 0         # The time of last disable
+    self.prev_enabled = False
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -77,11 +79,22 @@ class CarController():
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
     # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
+    current_time = time.monotonic()
+    if self.prev_enabled and not enabled:
+      self.last_disable = current_time
+    self.prev_enabled = enabled
+
     if not enabled and CS.stock_ldp_cmd > 0 and \
         not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
       apply_stock_dir = -1 if CS.steer_dir else 1
       stock_cmd = int(CS.stock_ldp_cmd) &~1 # Ensure LSB 0 for 11-bit cmd
-      apply_steer = stock_cmd * apply_stock_dir
+
+      # After disable, keep steering at 0 for the first 0.5 seconds, then increase from 0% to 100% over increase_duration.
+      increase_duration = 0.5 # Duration in seconds for steering torque to increase from 0% to 100%
+      disable_diff = current_time - self.last_disable
+      mul = max(0, min((disable_diff - 0.5) / increase_duration, 1))
+
+      apply_steer = int(round(stock_cmd * apply_stock_dir * mul))
       lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
