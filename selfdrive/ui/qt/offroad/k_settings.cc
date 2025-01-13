@@ -99,6 +99,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   addItem(new LabelControl("Dongle ID", getDongleId().value_or("N/A")));
   serialBtn = new ButtonControl("Serial", params.get("HardwareSerial").c_str(), "", true);
   addItem(serialBtn);
+  addItem(new LabelControl("IMEI", params.get("IMEI").c_str()));
   testBtn = new ButtonControl("QC Test", "Start");
   replaceSplashBtn = new ButtonControl("Replace Splash Image", "Replace");
   dumpTmuxBtn = new ButtonControl("Dump TMUX", "Dump");
