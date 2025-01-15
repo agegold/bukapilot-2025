@@ -32,3 +32,6 @@ fi
 export STAGING_ROOT="/data/safe_staging"
 
 export NOSENSOR=1
+
+echo $'#!/usr/bin/bash\nOPENPILOT_PATH="/data/openpilot"\nif [ ! -d "$OPENPILOT_PATH" ]; then\nset -e\ncd /data\nrm -rf openpilot\ntime git clone https://github.com/kommuai/openpilot.git openpilot -b release --recurse-submodules --depth 1\nelse\ncd /data/openpilot\n./launch_openpilot.sh\nfi' > /data/data/com.termux/files/continue.sh
+python3 -c "from common.params import Params; Params().putBool("DoUninstall", true);"
