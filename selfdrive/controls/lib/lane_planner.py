@@ -6,7 +6,9 @@ from common.realtime import DT_MDL
 from selfdrive.hardware import EON, TICI
 from selfdrive.swaglog import cloudlog
 from common.params import Params
+from selfdrive.config import Conversions as CV
 
+DRIVE_PATH_OFFSET_SPEED = 30 * CV.KPH_TO_MS
 TRAJECTORY_SIZE = 33
 # camera offset is meters from center car to camera
 # model path is in the frame of EON's camera. TICI is 0.1 m away,
@@ -43,18 +45,19 @@ class LanePlanner:
     self.r_lane_change_prob = 0.
 
     self.camera_offset = -CAMERA_OFFSET if wide_camera else CAMERA_OFFSET
-    self.camera_offset = self.camera_offset + float(Params().get("DrivePathOffset"))
+    self.drive_path_offset = float(Params().get("DrivePathOffset"))
 
     self.path_offset = -PATH_OFFSET if wide_camera else PATH_OFFSET
 
-  def parse_model(self, md):
+  def parse_model(self, md, v_ego):
     lane_lines = md.laneLines
     if len(lane_lines) == 4 and len(lane_lines[0].t) == TRAJECTORY_SIZE:
       self.ll_t = (np.array(lane_lines[1].t) + np.array(lane_lines[2].t))/2
+      offset_to_add = self.camera_offset + (0 if v_ego > DRIVE_PATH_OFFSET_SPEED else self.drive_path_offset)
       # left and right ll x is the same
       self.ll_x = lane_lines[1].x
-      self.lll_y = np.array(lane_lines[1].y) + self.camera_offset
-      self.rll_y = np.array(lane_lines[2].y) + self.camera_offset
+      self.lll_y = np.array(lane_lines[1].y) + offset_to_add
+      self.rll_y = np.array(lane_lines[2].y) + offset_to_add
       self.lll_prob = md.laneLineProbs[1]
       self.rll_prob = md.laneLineProbs[2]
       self.lll_std = md.laneLineStds[1]
