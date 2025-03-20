@@ -50,72 +50,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.0000015
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [2.0, 2.0, 2.0]
-      ret.longitudinalActuatorDelayLowerBound = 0.42
-      ret.longitudinalActuatorDelayUpperBound = 0.60
-
-    elif candidate == CAR.S70:
-      ret.wheelbase = 2.627
-      ret.steerRatio = 15.00
-      ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.9871
-      ret.mass = 1312. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1
-
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
-
-      ret.lateralTuning.pid.kpBP = [0., 25., 35., 40.]
-      ret.lateralTuning.pid.kpV = [0.06, 0.18, 0.18, 0.19]
-      ret.lateralTuning.pid.kiBP = [0., 20., 30.]
-      ret.lateralTuning.pid.kiV = [0.04, 0.08, 0.16]
-      ret.lateralTuning.pid.kf = 0.0000015
-
-      ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [2.0, 2.0, 2.0]
-      ret.longitudinalActuatorDelayLowerBound = 0.42
-      ret.longitudinalActuatorDelayUpperBound = 0.60
-
-    elif candidate == CAR.X90:
-      ret.wheelbase = 2.805
-      ret.steerRatio = 15.00
-      ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.9871
-      ret.mass = 1740. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1
-
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
-
-      ret.lateralTuning.pid.kpBP = [0., 25., 35., 40.]
-      ret.lateralTuning.pid.kpV = [0.06, 0.18, 0.18, 0.19]
-      ret.lateralTuning.pid.kiBP = [0., 20., 30.]
-      ret.lateralTuning.pid.kiV = [0.04, 0.08, 0.16]
-      ret.lateralTuning.pid.kf = 0.0000015
-
-      ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [2.0, 2.0, 2.0]
-      ret.longitudinalActuatorDelayLowerBound = 0.42
-      ret.longitudinalActuatorDelayUpperBound = 0.60
-
-    elif candidate == CAR.X70:
-      ret.wheelbase = 2.670
-      ret.steerRatio = 16.00
-      ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.9871
-      ret.mass = 1610. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1
-      ret.steerActuatorDelay = 0.13
-      ret.steerRateCost = 0.75
-
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [500]]
-
-      ret.lateralTuning.pid.kpBP = [0., 5., 15., 25., 35.]
-      ret.lateralTuning.pid.kpV = [0.0005, 0.02, 0.06, 0.14, 0.17]
-      ret.lateralTuning.pid.kiBP = [0., 5., 15., 25., 35.]
-      ret.lateralTuning.pid.kiV = [0.001, 0.01, 0.09, 0.4, 0.5]
-      ret.lateralTuning.pid.kf = 0.000006
-
-      ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [2.0, 2.0, 2.0]
+      ret.longitudinalTuning.kpV = [5.0, 3.6, 3.6]
       ret.longitudinalActuatorDelayLowerBound = 0.42
       ret.longitudinalActuatorDelayUpperBound = 0.60
 
@@ -127,7 +62,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.deadzoneBP = [0., 8.05]
     ret.longitudinalTuning.deadzoneV = [0, 0]
     ret.longitudinalTuning.kiBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiV = [0.1, 0.1, 0.1]
+    ret.longitudinalTuning.kiV = [1.5, 1.0, 1.0]
 
     ret.minEnableSpeed = -1
     ret.enableBsm = True
