@@ -96,7 +96,7 @@ class CarController():
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, raw_cnt, CS.gas_override))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, raw_cnt, CS.gas_override, cs_out.standstill))
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()
