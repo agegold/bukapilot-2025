@@ -1,14 +1,10 @@
-from selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons
+from selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
 from selfdrive.car.proton.values import DBC
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
 from common.params import Params
 from common.features import Features
 import time
-
-RES_INTERVAL = 150
-SNG_WAIT = 310
-RES_LEN = 3
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -48,12 +44,6 @@ class CarController():
     self.num_cruise_btn_sent = 0
     self.last_steer_disable = 0   # The time of last steer disable
     self.prev_steer_enabled = False
-    self.sng_next_press_frame = 0 # The frame where the next resume press is allowed
-    self.resume_counter = 0       # Counter for tracking the progress of a resume press
-    self.is_sng_check = False
-    self.lead_valid = False
-    self.prev_lead_dist = 0
-    self.lead_moved = True
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -106,38 +96,7 @@ class CarController():
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
-      #can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, raw_cnt))
-
-      # SNG auto resume
-      auto_resume_allowed = enabled and cs_out.cruiseState.standstill
-
-      if not auto_resume_allowed:
-        self.is_sng_check = False
-      else:
-        self.lead_valid = lead_visible and self.lead_valid
-        lead_dist = CS.leadDistance
-        self.lead_moved = self.lead_valid and (self.lead_moved or lead_dist > max(1, self.prev_lead_dist))
-        self.prev_lead_dist = lead_dist
-
-        if not self.is_sng_check:
-          # SNG auto resume check start
-          self.is_sng_check = True
-          self.lead_valid = True
-          self.sng_next_press_frame = frame + SNG_WAIT
-          self.resume_counter = 0
-          self.lead_moved = False
-
-        elif self.resume_counter >= RES_LEN or cs_out.gasPressed or CS.res_btn_pressed:
-          # Auto resume finished or manual press
-          self.sng_next_press_frame = max(self.sng_next_press_frame, frame + RES_INTERVAL)
-          self.resume_counter = 0
-          self.lead_moved = False
-
-        elif self.lead_moved and frame > self.sng_next_press_frame:
-          # Send resume press signal
-          if not self.mads or CS.acc_req:
-            can_sends.append(send_buttons(self.packer, raw_cnt, False))
-          self.resume_counter += 1
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, raw_cnt, CS.gas_override))
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()
