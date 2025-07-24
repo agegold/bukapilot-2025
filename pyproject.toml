@@ -72,7 +72,9 @@ dependencies = [
   # ui
   "qrcode",
 
+  # Kommu specific
   "msgpack",
+  "mcp[cli]",
 ]
 
 [project.optional-dependencies]
