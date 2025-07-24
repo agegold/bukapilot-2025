@@ -333,11 +333,48 @@ are uploaded or auto fallback to qlogs with '/a' selector at the end of the rout
 
 if __name__ == "__main__":
   import codecs
-
-  # capnproto <= 0.8.0 throws errors converting byte data to string
-  # below line catches those errors and replaces the bytes with \x__
+  # capnproto <= 0.8.0 may fail converting raw bytes to strings and this replaces invalid bytes with \x__ escape sequences
   codecs.register_error("strict", codecs.backslashreplace_errors)
-  log_path = sys.argv[1]
-  lr = LogReader(log_path, sort_by_time=True)
+
+  # --- Usage ---
+  # 1. Direct log URL or file:
+  #    python logreader.py "https://web.kommu.ai/depot/upload/<dongle>---<ts>--0---qlog.bz2"
+  # 2. Dongle ID and Timestamp (Kommu auto-fetch by default):
+  #    python logreader.py <dongle> <timestamp>
+  # 3. Explicit source (Kommu or Comma):
+  #    python logreader.py kommu <dongle> <timestamp>
+  #    python logreader.py comma <dongle> <timestamp>
+
+  if len(sys.argv) < 2:
+    print("Usage:\n"
+          "  python logreader.py \"<file_or_url>\"\n"
+          "  python logreader.py <dongle_id> <timestamp>\n"
+          "  python logreader.py [kommu|comma] <dongle_id> <timestamp>")
+    sys.exit(1)
+
+  base_url = "https://web.kommu.ai/depot/upload"
+
+  if len(sys.argv) == 3: # Case: <dongle_id> <timestamp> (default to kommu)
+    dongle = sys.argv[1]
+    timestamp = sys.argv[2]
+    lr = LogReader(probe_and_download_segments(dongle, timestamp, f"{base_url}/{dongle}"), sort_by_time=True)
+  elif len(sys.argv) == 4 and sys.argv[1] == "kommu": # Case: kommu <dongle> <timestamp>
+    dongle = sys.argv[2]
+    timestamp = sys.argv[3]
+    lr = LogReader(probe_and_download_segments(dongle, timestamp, f"{base_url}/{dongle}"), sort_by_time=True)
+  elif len(sys.argv) == 4 and sys.argv[1] == "comma": # Case: comma <dongle> <timestamp>
+    dongle = sys.argv[2]
+    timestamp = sys.argv[3]
+    lr = LogReader(f"{dongle}---{timestamp}", sort_by_time=True) # Comma's LogReader expects this format
+  elif len(sys.argv) == 2: # Case: single argument, assume direct file/URL
+    arg = sys.argv[1]
+    lr = LogReader(arg, sort_by_time=True)
+  else:
+    print("Usage:\n"
+          "  python logreader.py \"<file_or_url>\"\n"
+          "  python logreader.py <dongle_id> <timestamp>\n"
+          "  python logreader.py [kommu|comma] <dongle_id> <timestamp>")
+    sys.exit(1)
+
   for msg in lr:
     print(msg)
