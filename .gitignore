@@ -134,3 +134,4 @@ opendbc/can/packer_pyx.cpp
 opendbc/can/parser_pyx.cpp
 opendbc/can/packer_pyx.html
 opendbc/can/parser_pyx.html
+tools/lib/qlog_json
