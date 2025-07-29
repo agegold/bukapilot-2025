@@ -57,3 +57,18 @@ Learn about the openpilot ecosystem and tools by playing our [CTF](/tools/CTF.md
 ├── sim/                # Run openpilot in a simulator
 └── webcam/             # Run openpilot on a PC with webcams
 ```
+
+## Model Context Protocol (MCP) `mcp.json` for MCP client
+```json
+{
+  "mcpServers": {
+    "KommuMCPLogReader": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "cd ~/bukapilot && . .venv/bin/activate && exec mcp run ./tools/lib/mcp_server.py"
+      ]
+    }
+  }
+}
+```
