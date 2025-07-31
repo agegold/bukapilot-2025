@@ -36,6 +36,7 @@ def _decode_qlog_to_json(log_paths, file_name: str = None) -> str:
         append({"type": msg_type, "raw": raw_str})
     except Exception as e:
       append({"type": "unknown", "raw": f"decode error: {e}"})
+  QLOG_JSON_DIR.mkdir(exist_ok=True)
   json_path = QLOG_JSON_DIR / (file_name or f"bukapilot_qlog_{os.getpid()}.json")
   with open(json_path, "w", encoding="utf-8") as f:
     json.dump(messages, f, indent=2)
