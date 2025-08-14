@@ -51,6 +51,10 @@ void kedua_set_led(uint8_t color, bool enabled) {
   }
 }
 
+void kedua_set_bootkick(BootState state) {
+  set_gpio_output(GPIOC, 7, state != BOOT_BOOTKICK);
+}
+
 void kedua_set_ir_power(uint8_t percentage){
   pwm_set(TIM3, 4, percentage);
 }
@@ -189,7 +193,6 @@ void kedua_init(void) {
   kedua_set_can_mode(CAN_MODE_NORMAL);
 
   // change CAN mapping when flipped
-//  can_flip_buses(1, 2);
   if (harness.status == HARNESS_STATUS_FLIPPED) {
     can_flip_buses(1, 2);
   }
@@ -210,12 +213,12 @@ const harness_configuration kedua_harness_config = {
 };
 
 const board board_kedua = {
-  .set_bootkick = unused_set_bootkick, //TODO
+  .set_bootkick = kedua_set_bootkick,
   .harness_config = &kedua_harness_config,
   .has_obd = true,
   .has_spi = true,
   .has_canfd = true,
-  .has_rtc_battery = false, //TODO
+  .has_rtc_battery = true,
   .fan_max_rpm = 0U,
   .avdd_mV = 3300U,
   .fan_stall_recovery = false,
