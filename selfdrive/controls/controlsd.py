@@ -267,6 +267,7 @@ class Controls:
     self.recalibrating_seen = False
 
     self.can_log_mono_time = 0
+    self.last_alert_type = None
 
     self.startup_event = get_startup_event(car_recognized, controller_available, len(self.CP.carFw) > 0)
 
@@ -833,7 +834,7 @@ class Controls:
     if current_alert:
       hudControl.visualAlert = current_alert.visual_alert
 
-    self.update_led(current_alert.alert_type if current_alert else None)
+    #self.update_led(current_alert.alert_type if current_alert else None)
 
     if not self.CP.passive and self.initialized:
       self.last_actuators = self.card.controls_update(CC)
@@ -921,16 +922,18 @@ class Controls:
     self.CC = CC
 
   def update_led(self, alert_type):
-    if alert_type != getattr(self, "last_alert_type", None):
+    if alert_type != self.last_alert_type and alert_type != None:
+      alert_type_parsed = alert_type.split('/',1)[1].upper()# if '/' in alert_type else ''
+      print(alert_type_parsed)
       mapping = {
-        "NO_ENTRY": ("RED", "solid", None),
+        "NOENTRY": ("YELLOW", "solid", None),
         "PERMANENT": ("RED", "solid", None),
         "WARNING": ("ORANGE", "blink", "fast"),
-        "SOFT_DISABLE": ("ORANGE", "blink", "slow"),
+        "SOFTDISABLE": ("ORANGE", "blink", "slow"),
         "ENABLE": ("GREEN", "solid", None)
       }
-      c, m, r = mapping.get(alert_type, ("WHITE", "solid", None))
-      status_led.set(led.COLORS[c], mode=m, rate=r)
+      c, m, r = mapping.get(alert_type_parsed, ("WHITE", "solid", None))
+      status_led.set(color=status_led.COLORS[c], mode=m, rate=r)
       self.last_alert_type = alert_type
 
   def step(self):
