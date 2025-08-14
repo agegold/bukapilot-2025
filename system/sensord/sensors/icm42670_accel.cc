@@ -50,8 +50,8 @@ bool ICM42670_Accel::get_event(MessageBuilder &msg, uint64_t ts) {
   assert(len == 6);
 
   double accel_scale = 9.81 / 16384; // sensitivity scale factor from datasheet
-  float x = -read_16_bit(buffer[5], buffer[4]) * accel_scale;
-  float y = read_16_bit(buffer[1], buffer[0]) * accel_scale;
+  float x = read_16_bit(buffer[5], buffer[4]) * accel_scale;
+  float y = -read_16_bit(buffer[1], buffer[0]) * accel_scale;
   float z = -read_16_bit(buffer[3], buffer[2]) * accel_scale;
 
   // rotate the frame along the y axis
