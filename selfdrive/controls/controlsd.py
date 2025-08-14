@@ -17,6 +17,7 @@ from openpilot.common.numpy_fast import clip
 from openpilot.common.params import Params
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from openpilot.common.swaglog import cloudlog
+import openpilot.common.status_led as status_led
 
 from openpilot.selfdrive.boardd.boardd import can_list_to_can_capnp
 from openpilot.selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
@@ -832,6 +833,8 @@ class Controls:
     if current_alert:
       hudControl.visualAlert = current_alert.visual_alert
 
+    self.update_led(current_alert.alert_type if current_alert else None)
+
     if not self.CP.passive and self.initialized:
       self.last_actuators = self.card.controls_update(CC)
       CC.actuatorsOutput = self.last_actuators
@@ -916,6 +919,19 @@ class Controls:
 
     # copy CarControl to pass to CarInterface on the next iteration
     self.CC = CC
+
+  def update_led(self, alert_type):
+    if alert_type != getattr(self, "last_alert_type", None):
+      mapping = {
+        "NO_ENTRY": ("RED", "solid", None),
+        "PERMANENT": ("RED", "solid", None),
+        "WARNING": ("ORANGE", "blink", "fast"),
+        "SOFT_DISABLE": ("ORANGE", "blink", "slow"),
+        "ENABLE": ("GREEN", "solid", None)
+      }
+      c, m, r = mapping.get(alert_type, ("WHITE", "solid", None))
+      status_led.set(led.COLORS[c], mode=m, rate=r)
+      self.last_alert_type = alert_type
 
   def step(self):
     start_time = time.monotonic()
