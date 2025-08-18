@@ -27,8 +27,8 @@ class CarInterface(CarInterfaceBase):
     ret.lateralTuning.pid.kpBP = [0., 25., 35., 40.]
     ret.lateralTuning.pid.kpV = [0.05, 0.15, 0.15, 0.16]
     ret.lateralTuning.pid.kiBP = [0., 20., 30.]
-    ret.lateralTuning.pid.kiV = [0.10, 0.20, 0.40]
-    ret.lateralTuning.pid.kf = 0.00007
+    ret.lateralTuning.pid.kiV = [0.02, 0.04, 0.04]
+    ret.lateralTuning.pid.kf = 0.0000015
 
     ret.longitudinalTuning.kpBP = [0., 5., 20.]
     ret.longitudinalTuning.kpV = [1.0, 0.8, 0.6]
@@ -46,7 +46,7 @@ class CarInterface(CarInterfaceBase):
     if candidate == CAR.X50:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
     elif candidate == CAR.S70:
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [530]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
     elif candidate == CAR.X90:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
     else:
