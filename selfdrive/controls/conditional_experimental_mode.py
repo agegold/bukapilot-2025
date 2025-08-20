@@ -10,6 +10,7 @@ THRESHOLD = 0.63
 CRUISING_SPEED = 5  # m/s (~18kmh)
 LOW_SPEED_LIMIT = 9  # m/s (~40kmh)
 TURN_SIGNAL_SPEED = 55 * CV.MPH_TO_MS  # 24.6 m/s
+TURN_OFF_SLOW_CURVE_SPEED = 60 * CV.KPH_TO_MS
 
 params = Params()
 
@@ -28,13 +29,14 @@ class ConditionalExperimentalMode:
     # --- Road curvature detection ---
     curvature = self.calculate_curvature(model_data, v_ego)
     road_curve = (0.9 / abs(curvature))**0.5 < v_ego > CRUISING_SPEED
+    road_curve &= v_ego < TURN_OFF_SLOW_CURVE_SPEED
     self.curvature_filter.update(road_curve)
     curve_detected = self.curvature_filter.x >= THRESHOLD
 
     # --- Slow/stopped lead detection ---
     if lead.status:
-      # slow lead that is less than 30kmh or relative velocity of -2.88m/ss
-      slow_lead = lead.vLead < 8.33 or lead.vRel < -2.88
+      # slow lead that is less than 30kmh or relative velocity of -2.88m/ss and must be less than 60kmh
+      slow_lead = (lead.vLead < 8.33 or lead.vRel < -2.88) and v_ego < 16.67
       self.slow_lead_filter.update(slow_lead)
       lead_detected = self.slow_lead_filter.x >= THRESHOLD
     else:

@@ -177,7 +177,7 @@ void cameras_close(MultiCameraState *s) {
 
   // restart rkaiq 3A server
   system("sudo killall -q /usr/kommu/rkaiq_3A_server || true");
-  usleep(100000);  // blocks for 0.1 seconds
+  usleep(250000);  // blocks for 0.25 seconds
   system("sudo /usr/kommu/rkaiq_3A_server &");
 
 }
