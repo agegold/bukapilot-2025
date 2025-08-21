@@ -1,9 +1,9 @@
 from opendbc.can.packer import CANPacker
-
 from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
 from openpilot.selfdrive.car.proton.values import DBC
 from openpilot.common.numpy_fast import clip
+from openpilot.common.realtime import DT_CTRL
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -22,6 +22,14 @@ def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_tor
                         min(apply_torque_last + LIMITS.STEER_DELTA_DOWN, LIMITS.STEER_DELTA_UP))
 
   return round(apply_torque)
+
+STEER_REDUCED_TIME = 1.75 # The time where the steering becomes 100% again
+
+def reduce_steer(steer, resume_diff):
+  # Non-linear increment steering after resume
+  rate = 0.003 # Higher rate means steeper curve. When rate is 0, the curve becomes linear.
+  mul = min(1.0, (resume_diff / STEER_REDUCED_TIME) ** (1.0 - rate))
+  return steer * mul
 
 class CarControllerParams():
   def __init__(self, CP):
@@ -45,21 +53,33 @@ class CarController(CarControllerBase):
     self.steer_rate_limited = False
     self.steering_direction = False
 
+    self.last_steer_resume_frame = 0
+    self.prev_lat_active = False
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
+    frame = self.frame
 
     enabled = CC.latActive
     actuators = CC.actuators
-    #ldw = CC.hudControl.leftLaneDepart or CC.hudControl.rightLaneDepart
-
     lat_active = enabled
+    #ldw = CC.hudControl.leftLaneDepart or CC.hudControl.rightLaneDepart
 
     # steer
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
 
+    if lat_active:
+      # Check bp steer resume before LDP check
+      if not self.prev_lat_active:
+        self.last_steer_resume_frame = frame
+      # Reduce steering after resume
+      if (resume_diff := (frame - self.last_steer_resume_frame) * DT_CTRL) < STEER_REDUCED_TIME:
+        apply_steer = reduce_steer(apply_steer, resume_diff)
+    self.prev_lat_active = lat_active
+
     # CAN controlled lateral running at 50hz
-    if (self.frame % 2) == 0:
+    if (frame % 2) == 0:
       standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
