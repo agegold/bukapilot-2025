@@ -30,6 +30,8 @@ class CarInterface(CarInterfaceBase):
     ret.lateralTuning.pid.kpBP = [0., 5., 20.]
     ret.longitudinalTuning.kpV = [2.2, 2.0, 1.8]
     ret.lateralTuning.pid.kiBP = [0., 5., 20.]
+    ret.longitudinalTuning.kpBP = [0., 5., 20.]
+    ret.longitudinalTuning.kiBP = [0., 5., 20.]
     ret.longitudinalTuning.kiV = [0.45, 0.40, 0.32]
 
     ret.wheelSpeedFactor = 0.695
