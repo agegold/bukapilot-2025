@@ -140,9 +140,11 @@ class CarState(CarStateBase):
     if (bool(cp.vl["ACC_BUTTONS"]["SET_BUTTON"]) or bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])) and bool(cp_cam.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"]):
       self.is_cruise_latch = True
     if not ret.cruiseState.available or ret.brakePressed:
-      self.is_cruise_latch = False 
+      self.is_cruise_latch = False
     if bool(cp.vl["ACC_BUTTONS"]["CRUISE_BTN"]):
       self.is_cruise_latch = False
+    if bool(cp_cam.vl["ACC_CMD"]["CRUISE_ENABLE"]): # X50 stop and go fix
+      self.is_cruise_latch = True
     # temporary safety
     if ret.standstill and ret.gasPressed:
       self.is_cruise_latch = False
