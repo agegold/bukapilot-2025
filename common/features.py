@@ -1,12 +1,11 @@
 from openpilot.common.params import Params
 
-FEATURE_DELIMITER = ', '
-
 FEATURES = {
   "ignore-dm",
-  "clear-code",
+  "lks-tactile",
 }
 
+FEATURE_DELIMITER = ', '
 _params_instance: Params | None = None
 
 def _get_params() -> Params:
@@ -21,7 +20,7 @@ def _process_feature_string(feature_string_input: str) -> str:
   cleaned_input = (feature_string_input or "").lower()
   ordered_valid_features = []
   processed_features = set()
-  for feature_part in cleaned_input.split(','):
+  for feature_part in cleaned_input.split(FEATURE_DELIMITER.strip()):
     feature = feature_part.strip()
     if feature and feature in FEATURES and feature not in processed_features:
       ordered_valid_features.append(feature)

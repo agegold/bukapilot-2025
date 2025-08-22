@@ -1,8 +1,8 @@
 from openpilot.common.numpy_fast import clip
 from typing import List
 
-def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime, \
-    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable):
+def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_warning_2, \
+    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_steer):
 
   values = {
     "LKA_ENABLE": lka_enable,
@@ -11,16 +11,15 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     "STEER_CMD": abs(steer) if steer_req else 0,
     "STEER_DIR": steer <= 0,
     "LDW_READY": 1,
-    # Disable steering vibration for LDW if steer not enabled and LKS set to Warn Only mode and Tactile warning type
-    "LDW_STEERING": 0,
+    "LDW_STEERING": stock_ldw_steer, # Steering tactile LDW
     "SET_ME_1": 1,
-    "LKS_STATUS": 1,
+    "LKS_STATUS": 1, # Must be 1 so LKS indicator is correct
     "STOCK_LKS_AUX": lks_aux,
     "LKS_WARNING_AUDIO_TYPE": lks_audio,
     "LKS_WARNING_TACTILE_TYPE": lks_tactile,
     "LKS_ASSIST_MODE" : lks_assist_mode,
-    "HAND_ON_WHEEL_WARNING": wheel_touch_warning,
-    "WHEEL_WARNING_CHIME": wheel_touch_chime,
+    "HAND_ON_WHEEL_WARNING": wheel_touch_warning, # The first ICC touch warning
+    "WHEEL_WARNING_CHIME": wheel_touch_warning_2, # The second ICC touch warning
   }
 
   return packer.make_can_msg("ADAS_LKAS", 0, values)

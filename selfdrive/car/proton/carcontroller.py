@@ -4,6 +4,8 @@ from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, s
 from openpilot.selfdrive.car.proton.values import DBC
 from openpilot.common.numpy_fast import clip
 from openpilot.common.realtime import DT_CTRL
+from openpilot.common.features import Features
+import time
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -56,6 +58,10 @@ class CarController(CarControllerBase):
     self.last_steer_resume_frame = 0
     self.prev_lat_active = False
 
+    # For LDW/LDP (Proton stock LKS/LKA)
+    self.always_lks_tactile = Features().has("lks-tactile")
+    self.last_steer_disable = 0
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
     frame = self.frame
@@ -69,24 +75,48 @@ class CarController(CarControllerBase):
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
 
+    cs_out = CS.out
+
     if lat_active:
       # Check bp steer resume before LDP check
       if not self.prev_lat_active:
         self.last_steer_resume_frame = frame
-      # Reduce steering after resume
+      # Reduce steering after each bp resume
       if (resume_diff := (frame - self.last_steer_resume_frame) * DT_CTRL) < STEER_REDUCED_TIME:
         apply_steer = reduce_steer(apply_steer, resume_diff)
+    else: # not lat_active
+      if self.prev_lat_active:
+        self.last_steer_disable = time.monotonic() # Record last bp steer disabled time
+
+    # Record the last lat_active before LDP applied
     self.prev_lat_active = lat_active
 
+    # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
+    if not lat_active and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
+       not ((cs_out.rightBlinker and CS.stock_ldp_right) or (cs_out.leftBlinker and CS.stock_ldp_left)):
+      # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over 0.5 seconds.
+      # To prevent sudden pull after bp disable (especially in ICC mode or LKA Centering mode)
+      mul = clip((time.monotonic() - self.last_steer_disable - 0.55) / 0.5, 0, 1)
+      apply_steer = round(stock_steer_cmd * (-1 if CS.steer_dir else 1) * mul) &~1 # Ensure LSB 0 for 11-bit cmd
+      lat_active = True
+      self.steer_rate_limited = False
+
     # CAN controlled lateral running at 50hz
-    if (frame % 2) == 0:
-      standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
+    if frame % 2 == 0:
+      ldw_steering = CS.stock_ldw_steering
+      # Passing LKS mode values does not change car stored values, so also pass LDW value to ADAS steering.
+      if self.always_lks_tactile:
+        ldw_steering = ldw_steering or CS.has_audio_ldw
+        lks_audio, lks_tactile = False, True
+      else:
+        lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
+
+      standstill_request = cs_out.standstill and CC.longActive and actuators.accel < -0.01
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
-                      CS.hand_on_wheel_warning and CS.is_icc_on, \
-                      CS.is_icc_on and CS.hand_on_wheel_chime, \
+                      CS.hand_on_wheel_warning, CS.hand_on_wheel_warning_2, \
                       CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, \
-                      CS.lka_enable))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, CS.out.gasPressed, standstill_request))
+                      CS.lka_enable, ldw_steering))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, cs_out.gasPressed, standstill_request))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, CC.hudControl.rightLaneVisible, CC.hudControl.leftLaneVisible))
       #can_sends.append(create_lead_detect(self.packer, CC.hudControl.leadVisible, enabled))

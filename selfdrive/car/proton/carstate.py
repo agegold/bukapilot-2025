@@ -31,7 +31,7 @@ class CarState(CarStateBase):
     self.stock_steer_dir = 0
 
     self.hand_on_wheel_warning = False
-    self.hand_on_wheel_chime = False
+    self.hand_on_wheel_warning_2 = False
 
     self.is_cruise_latch = False
     self.acc_req = False
@@ -67,7 +67,7 @@ class CarState(CarStateBase):
 
     # miscs
     self.hand_on_wheel_warning = bool(cp_cam.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
-    self.hand_on_wheel_chime = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
+    self.hand_on_wheel_warning_2 = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.acc_req = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) or bool(cp_cam.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
 
     # kinematics
