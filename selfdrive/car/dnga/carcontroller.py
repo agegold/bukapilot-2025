@@ -159,7 +159,7 @@ class CarController(CarControllerBase):
 
     apply_brake = 0 if (CS.out.gasPressed or actuators.accel >= 0) else clip(abs(actuators.accel / BRAKE_M), 0., 1.25)
     if self.fingerprint in (CAR.ALZA):
-      if CS.out.vEgo < 2.2:
+      if CS.out.vEgo < 1.5:
         des_speed = CS.out.vEgo
       apply_brake = max(CS.stock_brake_mag - acc if acc > 0 else CS.stock_brake_mag * 0.5, apply_brake * 0.85)
     else:
