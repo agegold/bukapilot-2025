@@ -161,7 +161,9 @@ class CarController(CarControllerBase):
     if self.fingerprint in (CAR.ALZA):
       if CS.out.vEgo < 1.5:
         des_speed = CS.out.vEgo
-      apply_brake = max(CS.stock_brake_mag - acc if acc > 0 else CS.stock_brake_mag * 0.5, apply_brake * 0.85)
+        apply_brake = apply_brake * 0.85
+      else:
+        apply_brake = max((CS.stock_brake_mag * 0.5) - acc if acc > 0 else CS.stock_brake_mag * 0.5, apply_brake * 0.85)
     else:
       apply_brake = max(CS.stock_brake_mag * 0.6, apply_brake)
 
