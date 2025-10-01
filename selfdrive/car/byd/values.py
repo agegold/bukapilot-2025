@@ -19,6 +19,12 @@ class CAR(Platforms):
     CarInfo("BYD Atto 3", "ALL"),
     specs=CarSpecs(mass=2090., wheelbase=2.72, steerRatio=16.0)
   )
+  SEAL = BYDPlatformConfig(
+    "BYD SEAL",
+    CarInfo("BYD Seal", "ALL"),
+    specs=CarSpecs(mass=2180., wheelbase=2.92, steerRatio=16.0)
+  )
+
 
 CAR_INFO = CAR.create_carinfo_map()
 DBC = CAR.create_dbc_map()

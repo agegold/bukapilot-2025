@@ -81,6 +81,9 @@ class CarController(CarControllerBase):
           can_sends.append(send_buttons(self.packer, 1, 0))
 
         can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, brake_hold))
+      else:
+        if CS.out.standstill and enabled and (self.frame % 100 == 0):
+          can_sends.append(send_buttons(self.packer, 1, 0))
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 0, 1))

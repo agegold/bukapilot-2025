@@ -90,4 +90,3 @@ def send_buttons(packer, state, cancel):
       "ACC_ON_BTN": cancel,
   }
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
-
