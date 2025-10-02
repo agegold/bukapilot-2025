@@ -326,3 +326,4 @@ if __name__ == "__main__":
     swap(args.manifest, target_slot_number, logging)
   else:
     flash_agnos_update(args.manifest, target_slot_number, logging, standalone=True)
+    swap(args.manifest, target_slot_number, logging)
