@@ -39,7 +39,7 @@ class CarState(CarStateBase):
 
     self.tsr = cp_cam.vl["LKAS_HUD_ADAS"]['TSR']
 
-    if self.CP.carFingerprint in CAR.ATTO3:
+    if self.CP.carFingerprint in (CAR.ATTO3, CAR.SEAL):
       self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW'] # byd M6 doesn't use this
     else:
       self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['LKAS_ENABLED']
@@ -141,7 +141,10 @@ class CarState(CarStateBase):
     if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
       self.is_cruise_latch = False
 
-    ret.cruiseState.enabled = self.is_cruise_latch
+    if self.CP.carFingerprint in (CAR.SEAL):
+      ret.cruiseState.enabled = parser_alt.vl["ACC_HUD_ADAS"]["CRUISE_STATE"] == 3
+    else:
+      ret.cruiseState.enabled = self.is_cruise_latch
 
     # button presses
     ret.leftBlinker = bool(cp.vl["STALKS"]["LEFT_BLINKER"])
