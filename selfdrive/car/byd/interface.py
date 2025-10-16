@@ -41,13 +41,12 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalActuatorDelayLowerBound = 0.2
       ret.longitudinalActuatorDelayUpperBound = 0.3
-    if candidate == CAR.M6:
+    elif candidate == CAR.M6:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
       ret.lateralTuning.pid.kf = 0.00015
 
       ret.longitudinalActuatorDelayLowerBound = 0.2
       ret.longitudinalActuatorDelayUpperBound = 0.3
-
     elif candidate == CAR.SEAL:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
       ret.lateralTuning.pid.kf = 0.00015
