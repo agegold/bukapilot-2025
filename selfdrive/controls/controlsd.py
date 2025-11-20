@@ -201,7 +201,7 @@ class Controls:
       ignore += ['driverCameraState', 'managerState']
     self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                    'driverMonitoringState', 'longitudinalPlan', 'liveLocationKalman',
-                                   'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters',
+                                   'managerState', 'radarState', 'liveTorqueParameters',
                                    'testJoystick'] + self.camera_packets + self.sensor_packets,
                                   ignore_alive=ignore, ignore_avg_freq=ignore+['radarState', 'testJoystick'], ignore_valid=['testJoystick', ],
                                   frequency=int(1/DT_CTRL))
@@ -466,8 +466,8 @@ class Controls:
         self.events.add(EventName.deviceFalling)
       if not self.sm['liveLocationKalman'].inputsOK:
         self.events.add(EventName.locationdTemporaryError)
-      if not self.sm['liveParameters'].valid and not TESTING_CLOSET and (not SIMULATION or REPLAY):
-        self.events.add(EventName.paramsdTemporaryError)
+      # if not self.sm['liveParameters'].valid and not TESTING_CLOSET and (not SIMULATION or REPLAY):
+      #   self.events.add(EventName.paramsdTemporaryError)
 
     # conservative HW alert. if the data or frequency are off, locationd will throw an error
     if any((self.sm.frame - self.sm.recv_frame[s])*DT_CTRL > 10. for s in self.sensor_packets):
@@ -649,10 +649,10 @@ class Controls:
     """Given the state, this function returns a CarControl packet"""
 
     # Update VehicleModel
-    lp = self.sm['liveParameters']
-    x = max(lp.stiffnessFactor, 0.1)
-    sr = max(lp.steerRatio, 0.1)
-    self.VM.update_params(x, sr)
+    # lp = self.sm['liveParameters']
+    # x = max(lp.stiffnessFactor, 0.1)
+    # sr = max(lp.steerRatio, 0.1)
+    # self.VM.update_params(x, sr)
 
     # Update Torque Params
     if self.CP.lateralTuning.which() == 'torque':
@@ -700,7 +700,13 @@ class Controls:
       # Steering PID loop and lateral MPC
       self.desired_curvature = clip_curvature(CS.vEgo, self.desired_curvature, model_v2.action.desiredCurvature)
       actuators.curvature = self.desired_curvature
+      '''
       actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(CC.latActive, CS, self.VM, lp,
+                                                                             self.steer_limited, self.desired_curvature,
+                                                                             self.sm['liveLocationKalman'])
+      '''
+      lat_params = type("", (), {"roll": 0.0, "angleOffsetDeg": 0.0})()
+      actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(CC.latActive, CS, self.VM, lat_params,
                                                                              self.steer_limited, self.desired_curvature,
                                                                              self.sm['liveLocationKalman'])
     else:
@@ -845,10 +851,12 @@ class Controls:
                   (self.state == State.softDisabling)) and False
 
     # Curvature & Steering angle
-    lp = self.sm['liveParameters']
+    # lp = self.sm['liveParameters']
 
-    steer_angle_without_offset = math.radians(CS.steeringAngleDeg - lp.angleOffsetDeg)
-    curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, lp.roll)
+    # steer_angle_without_offset = math.radians(CS.steeringAngleDeg - lp.angleOffsetDeg)
+    # curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, lp.roll)
+    steer_angle_without_offset = math.radians(CS.steeringAngleDeg)
+    curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, 0.0)
 
     # controlsState
     dat = messaging.new_message('controlsState')
