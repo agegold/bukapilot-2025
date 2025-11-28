@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - snapshot_ka2
+  pull_request:
+    branches:
+      - snapshot_ka2
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Ubuntu environment
+        run: ./tools/ubuntu_setup.sh
+
+      - name: Refresh package lists
+        run: sudo apt-get update
+
+      - name: Install Git LFS
+        run: |
+          sudo apt-get install -y git-lfs
+          git lfs install --local
+
+      - name: Install more Qt dependencies for navd
+        run: |
+          sudo apt-get install -y qtlocation5-dev qtpositioning5-dev qtmultimedia5-dev
+
+      - name: Configure Git LFS to use GitLab endpoint
+        run: |
+          git config lfs.url https://gitlab.com/iXcess/openpilot-lfs.git/info/lfs
+          git lfs pull
+
+      - name: Run Python syntax checks
+        run: |
+          source .venv/bin/activate
+          python -m compileall ./selfdrive
+
+      - name: Build extensions with SCons
+        run: |
+          source .venv/bin/activate
+          scons -j$(nproc)
+
+      - name: Run car tests
+        run: |
+          source .venv/bin/activate
+          ./selfdrive/car/tests/test_car_interfaces.py
