@@ -61,7 +61,8 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, spee
     accel_cmd = 0
 
   if speed > 2.5:
-    accel_cmd = min(stock * 0.9, accel_cmd)
+    mult = interp(CS.out.vEgo, [2.5, 28.3], [0.9, 0.6])
+    accel_cmd = min(stock * mult, accel_cmd)
 
   if accel_cmd > 0:
     standstill = False
