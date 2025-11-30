@@ -35,6 +35,7 @@ extern bool can_loopback;
 bool ignition_can = false;
 uint32_t ignition_can_cnt = 0U;
 bool ignore_ignition_line = false;
+bool ignore_ignition_line_redundant = false; 
 
 #define ALL_CAN_SILENT 0xFF
 #define ALL_CAN_LIVE 0
@@ -233,8 +234,11 @@ void ignition_can_hook(CANPacket_t *to_push) {
       ignition_can = true;
       ignition_can_cnt = 0U;
     }
-    if ((addr == 0x1A7) && (len == 8)) {
+    if ((addr == 0x1A7) && (len == 8) && ignore_ignition_line_redundant) {
       ignore_ignition_line = true;
+    }
+    if ((addr == 0x97) && (len == 8)) {
+      ignore_ignition_line_redundant = true;
     }
 
   }
